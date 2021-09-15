@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>A2HS demo</title>
+    <link href="style.css" rel="stylesheet">
+    <script src="index.js" defer></script>
+    <link rel="manifest" href="manifest.webmanifest">
+  </head>
+  <body>
+      <!--<img src="images/fox1.jpg" alt="a fox picture">-->
+
+      <button class="add-button">Add to home screen</button>
+      <span id="spanStatus">(TEXT)</span>
+      <span id="modelName"></span>
+      <span id="spanStatus">Change to next page in 5 sec</span>
+      <span id="buttonContent"> -- </span>
+      <span id="socketStatus"> -- </span>
+      <button onclick="myFunction(1)"> Echo </button>
+      <button onclick="myFunction(2)"> Echo2 </button>
+      <button onclick="myFunction(3)"> Chat </button>
+      <hr />
+
+      <span id="currentFanMode"> -- </span>
+      <button onclick="setFanMode(1)"> Fan Auto </button>
+      <button onclick="setFanMode(2)"> Fan Max </button>
+      <button onclick="setFanMode(3)"> Fan Custom </button>
+      <script src="jquery-3.6.0.js"></script>
+      <script type="text/javascript">
+          var ws;
+          function myFunction(type) {
+              var echo_word = '{"name": "Molecule Man","age": 29,"secretIdentity": "Dan Jukes","powers": ["Radiation resistance","Turning tiny","Radiation blast"]}';
+              var send_path = "ws://localhost:4649/Echo";
+              if (type == 1) {
+
+              }
+              else if (type == 2) {
+                  echo_word = 'echo2';
+              }
+              else { send_path = "ws://localhost:4649/Chat"; }
+              ws = new WebSocket(send_path);
+              ws.onopen = function () {
+                  //$("#spanStatus").text("connected");
+                  var res = ws.send(
+                      echo_word);
+                  //Add
+
+                  $("#socketStatus").text("onopen");
+              };
+              ws.onmessage = function (evt) {
+                  //Get result and put value
+                  //$("#spanStatus").text(evt.data);
+                  document.getElementById("buttonContent").innerHTML = evt.data;
+                  //socket.close([code], [reason]);
+                  $("#socketStatus").text("onmessage");
+                  ws.close();
+              }; ws.onerror = function (evt) {
+                  $("#buttonContent").text(evt.message);
+                  $("#socketStatus").text("onerror");
+                  //alert("Disconnected! Please check client!");
+              };
+              ws.onclose = function () {
+                  $("#socketStatus").text("onclose!");
+                  //alert("Disconnected! Please check client!");
+              };
+          }
+
+          function setFanMode(mode) {
+              ws = new WebSocket("ws://localhost:4649/Acer/SetFanMode");
+              ws.onopen = function () {
+                  //$("#spanStatus").text("connected");
+                  var res = ws.send(mode);
+              };
+              ws.onmessage = function (evt) {
+                  //Get result and put value
+                  //$("#spanStatus").text(evt.data);
+                  document.getElementById("buttonContent").innerHTML = evt.data;
+                  //socket.close([code], [reason]);
+                  if (mode == 1)
+                  {
+                      $("#currentFanMode").text("fan mode: Auto");
+                  }
+                  else if (mode == 2) {
+                      $("#currentFanMode").text("fan mode: Max");
+                  }
+                  else
+                  {
+                      $("#currentFanMode").text("fan mode: Custom");
+                  }
+                  ws.close();
+              }; ws.onerror = function (evt) {
+                  $("#currentFanMode").text(evt.message);
+                  //alert("Disconnected! Please check client!");
+              };
+              ws.onclose = function () {
+                  //$("#currentFanMode").text("onclose!");
+                  //alert("Disconnected! Please check client!");
+              };
+          }
+
+          $().ready(function () {
+              //$(location).attr("href", "https://google.com");
+              //Hide compoment
+
+              $("#spanStatus").text("connecting");
+
+              ws = new WebSocket("ws://localhost:4649/Acer/modelName");
+
+              ws.onopen = function () {
+                  $("#spanStatus").text("connected");
+
+                  //Add
+                  var res = ws.send($("#textInput").val());
+
+              };
+              ws.onmessage = function (evt) {
+                  //Get result and put value
+                  $("#spanStatus").text(evt.data);
+
+                  var obj = jQuery.parseJSON(evt.data);
+
+                  $("#modelName").text("Model Name : " + obj.ModelName);
+
+                  setInterval(() => {
+                      //window.location.href = "./src/mainPage.html?ModelName=" + obj.ModelName;
+                      window.location.href = "http://localhost:8000/index.html?ModelName=" + obj.ModelName;
+                      //var url = "./src/mainPage.html";
+                      //var form = $('<form action="ms-appx-web://src/mainPage.html" method="post">' +
+                      //    '<input type="text" name="ModelName" value="' + obj.ModelName + '" />' +
+                      //    '</form>');
+                      //$('body').append(form);
+                      //form.submit();
+                  }, 500);
+
+
+                  //setInterval(() => {
+                  //    $.ajax({
+                  //        type: "POST",
+                  //        contentType: "application/json; charset=utf-8",
+                  //        url: "./src/mainPage.html",
+                  //        dataType: "json",
+                  //        data: { ModelName: obj.ModelName },
+                  //        complete:
+                  //            function () {
+
+                  //            }
+
+                  //    });
+                  //}, 5000);
+              };
+              ws.onerror = function (evt) {
+                  $("#spanStatus").text(evt.message);
+                  //alert("Disconnected! Please check client!");
+              };
+              ws.onclose = function () {
+                  $("#spanStatus").text("Disconnected,please check client!");
+                  //alert("Disconnected! Please check client!");
+              };
+
+              $("#dropList").change(function () {
+                  var end = this.value;
+                  var firstDropVal = $('#dropList').val();
+
+                  alert("Save " + firstDropVal + " value to local!");
+
+                  $("#textInput").val(firstDropVal);
+
+                  /*if (ws.readyState == WebSocket.OPEN) {
+                      var res = ws.send($("#textInput").val());
+                  }
+                  else {
+                      $("#spanStatus").text("Connection is closed");
+                  }*/
+
+                  //Call by dropdown list itself
+                  ws2 = new WebSocket("ws://localhost:8080/hello");
+
+                  ws2.onopen = function () {
+                      //$("#spanStatus").text("connected");
+
+                      //Add
+                      var res = ws2.send($("#textInput").val());
+
+                      setInterval(() => {
+                          //$.ajax({
+                          //    type: "POST",
+                          //    contentType: "application/json; charset=utf-8",
+                          //    url: "https://www.google.com.tw/search",
+                          //    dataType: "json",
+                          //    data: "{q=123&sxsrf=ALeKk03qUiK6rMNnANmqmvU3NPdy714xUw%3A1625741397548&source=hp&ei=VdjmYIneHcPdmAWh05WQCw&iflsig=AINFCbYAAAAAYObmZTcZGfPiTgXMpzSKb8NsTAJmKrRB&oq=123&gs_lcp=Cgdnd3Mtd2l6EAMyAggAMggIABCxAxCDATIICAAQsQMQgwEyBQgAELEDMggIABCxAxCDATIICAAQsQMQgwEyBQgAELEDMgUIABCxAzIICAAQsQMQgwEyBQgAELEDOgcIIxDqAhAnOgQIIxAnOgQIABADOgcIABCxAxAKUKQIWIoKYKAcaAJwAHgAgAEoiAFzkgEBM5gBAKABAaoBB2d3cy13aXqwAQo&sclient=gws-wiz&ved=0ahUKEwjJ3PnTptPxAhXDLqYKHaFpBbIQ4dUDCAk&uact=5}",
+                          //    complete:
+                          //        function () {
+                          //            window.location = "https://www.google.com.tw/search";
+                          //        }
+
+                          //});
+                      }, 5000);
+                  };
+                  ws2.onmessage = function (evt) {
+                      $("#spanStatus").text(evt.data);
+                  };
+                  ws2.onerror = function (evt) {
+                      $("#spanStatus").text(evt.message);
+                      //alert("Disconnected! Please check client!");
+                  };
+                  ws2.onclose = function () {
+                      //$("#spanStatus").text("disconnected");
+                      alert("Disconnected! Please check client!");
+                  };
+              });
+          });
+      </script>
+  </body>
+</html>

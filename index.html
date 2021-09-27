@@ -16,6 +16,7 @@
       <span id="spanStatus">Change to next page in 5 sec</span>
       <span id="buttonContent"> -- </span>
       <span id="socketStatus"> -- </span>
+
       <button onclick="myFunction(1)"> Echo </button>
       <button onclick="myFunction(2)"> Echo2 </button>
       <button onclick="myFunction(3)"> Chat </button>
@@ -25,6 +26,10 @@
       <button onclick="setFanMode(1)"> Fan Auto </button>
       <button onclick="setFanMode(2)"> Fan Max </button>
       <button onclick="setFanMode(3)"> Fan Custom </button>
+
+      <hr />
+      <button onclick="TurboKeycallback()"> start turbo key </button>
+      <span id="TurboKeyStatus"> -- </span>
       <script src="jquery-3.6.0.js"></script>
       <script type="text/javascript">
           var ws;
@@ -76,15 +81,13 @@
                   //$("#spanStatus").text(evt.data);
                   document.getElementById("buttonContent").innerHTML = evt.data;
                   //socket.close([code], [reason]);
-                  if (mode == 1)
-                  {
+                  if (mode == 1) {
                       $("#currentFanMode").text("fan mode: Auto");
                   }
                   else if (mode == 2) {
                       $("#currentFanMode").text("fan mode: Max");
                   }
-                  else
-                  {
+                  else {
                       $("#currentFanMode").text("fan mode: Custom");
                   }
                   ws.close();
@@ -95,6 +98,23 @@
               ws.onclose = function () {
                   //$("#currentFanMode").text("onclose!");
                   //alert("Disconnected! Please check client!");
+              };
+          }
+
+          function TurboKeycallback() {
+              ws = new WebSocket("ws://localhost:4649/Acer/TurboKeyEvent");
+              ws.onopen = function () {
+                  //$("#spanStatus").text("connected");
+                  var res = ws.send("TEST");
+              };
+              ws.onmessage = function (evt) {
+                  document.getElementById("TurboKeyStatus").innerHTML = evt.data;
+              }; ws.onerror = function (evt) {
+                  $("#TurboKeyStatus").text(evt.message);
+                  //alert("Disconnected! Please check client!");
+              };
+              ws.onclose = function () {
+
               };
           }
 
@@ -123,7 +143,8 @@
 
                   setInterval(() => {
                       //window.location.href = "./src/mainPage.html?ModelName=" + obj.ModelName;
-                      window.location.href = "http://localhost:8000/index.html?ModelName=" + obj.ModelName;
+                      //////////window.location.href = "http://localhost:8000/index.html?ModelName=" + obj.ModelName;
+                      //window.location.href = "https://trpleokslab.github.io/";
                       //var url = "./src/mainPage.html";
                       //var form = $('<form action="ms-appx-web://src/mainPage.html" method="post">' +
                       //    '<input type="text" name="ModelName" value="' + obj.ModelName + '" />' +
